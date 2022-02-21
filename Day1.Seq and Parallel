@@ -1,0 +1,231 @@
+package week5.Day1;
+import org.openqa.selenium.By;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Parameters;
+import io.github.bonigarcia.wdm.WebDriverManager;
+
+public class BaseClass {
+   public ChromeDriver driver;
+   @Parameters({"url","userName","passWord"})
+   @BeforeMethod
+	public  void preCondition(String url , String userName , String passWord) {
+		WebDriverManager.chromedriver().setup();
+		driver = new ChromeDriver();
+		driver.get(url);
+		driver.manage().window().maximize();
+		driver.findElement(By.id ("username")).sendKeys(userName);
+	    driver.findElement(By.id ("password")).sendKeys(passWord);
+	    driver.findElement(By.className("decorativeSubmit")).click();
+	    driver.findElement(By.xpath("//a[contains (text(),'CRM/SFA')]")).click();
+}
+   @AfterMethod
+   public void postcondition() {
+	   driver.close();
+	      }
+}
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+package week5.Day1;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.Select;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+import io.github.bonigarcia.wdm.WebDriverManager;
+
+public class TestNGCreateLead extends BaseClass {
+  @Test
+  public  void createLead(String cName , String fName , String lName) {  
+      driver.findElement(By.partialLinkText("Leads")).click();
+      driver.findElement(By.partialLinkText("Create Lead")).click();
+      driver.findElement(By.id("createLeadForm_companyName")).sendKeys(cName);
+      driver.findElement(By.id("createLeadForm_firstName")).sendKeys(fName);
+      driver.findElement(By.id("createLeadForm_lastName")).sendKeys(lName);
+      driver.findElement(By.xpath("//input[@id='createLeadForm_birthDate']")).sendKeys("01/01/1989");
+      driver.findElement(By.xpath("//input[@id='createLeadForm_primaryPhoneAreaCode']")).sendKeys("11111");
+      driver.findElement(By.xpath("//input[@value='Create Lead']")).click();  
+  }   
+      }
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+package week5.Day1;
+import org.openqa.selenium.By;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.testng.annotations.Test;
+import io.github.bonigarcia.wdm.WebDriverManager;
+public class TestNGEditLead extends BaseClass{
+   @Test
+	public  void editLead() throws InterruptedException {   
+	    driver.findElement(By.xpath("//a[text()='Leads']")).click();
+	    driver.findElement(By.xpath("//a[text()='Find Leads']")).click();
+	    Thread.sleep(2000);
+	    driver.findElement(By.xpath("//input[@id='ext-gen248']")).sendKeys("Babu");
+	    Thread.sleep(2000);
+	    driver.findElement(By.xpath("//button[text()='Find Leads']")).click();
+	    Thread.sleep(2000);
+	    driver.findElement(By.xpath("(//div[@class ='x-grid3-cell-inner x-grid3-col-firstName']/a)[1]")).click();
+	    System.out.println(driver.getTitle());
+	    if(driver.getTitle().contains("View Lead")) {
+	    	driver.findElement(By.xpath("//a[text()='Edit']")).click();
+	    	driver.findElement(By.xpath("//input[@id='updateLeadForm_companyName']")).clear();
+	     driver.findElement(By.xpath("//input[@id='updateLeadForm_companyName']")).sendKeys("ABCDE");
+	    	driver.findElement(By.xpath("//input[@value='Update']")).click();
+	    	Thread.sleep(2000);
+	    	String a = driver.findElement(By.xpath("//span[@id='viewLead_companyName_sp']")).getText();
+	    	System.out.println(a);
+	    	Thread.sleep(2000);
+	    	if(a.contains("ABCDE")) {
+	    		System.out.println("Company Name updated");	    	
+	    	}
+	    	else {
+	    		System.out.println("Company name NOT updated");
+	    	}
+	
+	    }
+          driver.close();
+	}
+	}
+  \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+  package week5.Day1;
+import org.openqa.selenium.By;
+import org.testng.annotations.Test;
+public class TestNGDeleteLead extends BaseClass{
+@Test
+	public  void deleteLead() throws InterruptedException {   
+	    driver.findElement(By.xpath("//a[text()='Leads']")).click();
+	    driver.findElement(By.xpath("//a[text()='Find Leads']")).click();
+	    Thread.sleep(2000);
+	    driver.findElement(By.xpath("(//em[@class='x-tab-left']/span)[2]")).click();
+	    driver.findElement(By.xpath("//input[@name='phoneNumber']")).sendKeys("11111");
+	    Thread.sleep(2000);
+	    driver.findElement(By.xpath("//button[text()='Find Leads']")).click();
+	    Thread.sleep(2000);
+	    String fn = driver.findElement(By.xpath("(//div[@class='x-grid3-cell-inner x-grid3-col-firstName'])[1]")).getText();
+	    System.out.println(fn);
+	    Thread.sleep(2000);
+	    driver.findElement(By.xpath("(//a[@class='linktext'])[39]")).click();
+	    driver.findElement(By.xpath("//a[@class='subMenuButtonDangerous']")).click();
+	    Thread.sleep(2000);
+	    driver.findElement(By.xpath("//a[text()='Find Leads']")).click();
+	    driver.findElement(By.xpath("//input[@name='id']")).sendKeys(fn);
+	    driver.findElement(By.xpath("(//button[@class='x-btn-text'])[6]")).click();
+	    Thread.sleep(2000);
+	    String msg = driver.findElement(By.xpath("//div[text()='No records to display']")).getText();
+	    System.out.println(msg);
+	    Thread.sleep(2000);
+	    if(msg.contains("No records to display")) {
+	    	System.out.println("Delete Successful");
+	    }
+	    else {
+	    	System.out.println("Delete NOT successful");
+	    }
+	}
+
+}
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+package week5.Day1;
+import org.openqa.selenium.By;
+import org.testng.annotations.Test;
+public class TestNGDuplicateLead extends BaseClass {
+  
+	@Test
+	public  void createContact() throws InterruptedException {
+	     driver.findElement(By.xpath("//a[text()='Leads']")).click();
+	    driver.findElement(By.xpath("//a[text()='Find Leads']")).click();
+	    Thread.sleep(2000);
+	    driver.findElement(By.xpath("//span[text()='Email']")).click();
+	    driver.findElement(By.xpath("//input[@name='emailAddress']")).sendKeys("babu@testleaf.com");
+	    driver.findElement(By.xpath("//button[text()='Find Leads']")).click();
+	    Thread.sleep(2000);
+	    String firstname = driver.findElement(By.xpath("(//div[@class='x-grid3-cell-inner x-grid3-col-firstName'])[1]")).getText();
+	    System.out.println(firstname);
+	    Thread.sleep(2000);
+	    driver.findElement(By.xpath("(//div[@class='x-grid3-cell-inner x-grid3-col-partyId']/a)[1]")).click();
+	    Thread.sleep(2000);
+	   driver.findElement(By.xpath("//a[text()='Duplicate Lead']")).click();
+	   driver.getTitle();	
+	    if (driver.getTitle().contains("Duplicate Lead")) {
+	    	driver.findElement(By.xpath("//input[@value='Create Lead']")).click();
+	    	String text = driver.findElement(By.xpath("//span[@id='viewLead_firstName_sp']")).getText();
+	  if(text.equals(firstname)) {
+		  System.out.println("Duplicate Name");
+	  }
+	  else {
+	    	System.out.println("Not Duplicate Name");
+	    }
+	  driver.close();
+	
+	    }
+	}
+}
+	\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+  package week5.Day1;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.Select;
+import org.testng.annotations.Test;
+public class TestNGCreateContact extends BaseClass {
+	@Test 
+	public  void createContact() {
+	    
+	    driver.findElement(By.xpath("//a[text()='Contacts']")).click();
+	    driver.findElement(By.xpath("//a[text()='Create Contact']")).click();
+	    driver.findElement(By.id("firstNameField")).sendKeys("SREE");
+	    driver.findElement(By.id("lastNameField")).sendKeys("LAK");
+	    driver.findElement(By.id("createContactForm_firstNameLocal")).sendKeys("sree");
+	    driver.findElement(By.id("createContactForm_lastNameLocal")).sendKeys("lak");
+	    driver.findElement(By.id("createContactForm_departmentName")).sendKeys("Banking");
+	    driver.findElement(By.xpath("//textarea[@name='description']")).sendKeys("Primary Contact");
+	    driver.findElement(By.xpath("//input[@id='createContactForm_primaryEmail']")).sendKeys("laksha.eie@gmail.com");
+	    
+	    WebElement state = driver.findElement(By.name("generalStateProvinceGeoId"));
+	    Select sstate = new Select(state);
+	    sstate.selectByVisibleText("New York");
+	    
+	    driver.findElement(By.xpath("//input[@value='Create Contact']")).click();
+	    driver.findElement(By.xpath("//a[@class='subMenuButton']")).click();
+	    driver.findElement(By.xpath("//textarea[@id='updateContactForm_description']")).clear();
+	    driver.findElement(By.xpath("//textarea[@id='updateContactForm_importantNote']")).sendKeys("Not a primary contact");
+	    driver.findElement(By.xpath("//input[@value='Update']")).click();
+	    System.out.println("The Title is : "+ driver.getTitle());
+}
+}
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+Executing sequentially
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Suite">
+  <test thread-count="5" name="Test">
+    <classes>
+      <class name="week5.Day1.TestNGCreateLead"/>
+      <class name="week5.Day1.TestNGDeleteLead"/>
+      <class name="week5.Day1.TestNGCreateContact"/>
+      <class name="week5.Day1.TestNGEditLead"/>
+      <class name="week5.Day1.TestNGDuplicateLead"/>
+    </classes>
+  </test> <!-- Test -->
+</suite> <!-- Suite -->
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+Executing Parallely
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite parallel="classes" name="Suite">
+<parameter name ="url" value = "http://leaftaps.com/opentaps/control/main"> </parameter>
+<parameter name = "userName" value = "DemoCSR"> </parameter>
+<parameter name = "passWord" value = "crmsfa" > </parameter>
+  <test thread-count="2" parallel="classes" name="Test">
+    <classes>
+      <class name="week5.Day1.TestNGCreateLead"/>
+      <class name="week5.Day1.TestNGDeleteLead"/>
+      <class name="week5.Day1.TestNGCreateContact"/>
+      <class name="week5.Day1.TestNGEditLead"/>
+      <class name="week5.Day1.TestNGDuplicateLead"/>
+    </classes>
+  </test> <!-- Test -->
+</suite> <!-- Suite -->
+
+
+
