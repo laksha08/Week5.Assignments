@@ -1,0 +1,241 @@
+package serviceNow;
+
+import java.time.Duration;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Parameters;
+import io.github.bonigarcia.wdm.WebDriverManager;
+    
+public class BaseClassService {
+	public  ChromeDriver driver;
+	
+	@Parameters({"url","userName","passWord"})
+	@BeforeMethod
+	public void preCondition1(String url , String userName , String passWord) {
+	WebDriverManager.chromedriver().setup();
+    driver = new ChromeDriver();
+	driver.get(url);
+	driver.manage().window().maximize();
+	driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(20));
+	
+	driver.findElement(By.xpath("//input[@id='user_name']")).sendKeys(userName);
+	driver.findElement(By.xpath("//input[@id='user_password']")).sendKeys(passWord);
+	driver.findElement(By.xpath("//button[text()='Log in']")).click();
+
+  }
+	
+	@AfterMethod
+	   public void postCondition1() {
+		   driver.close();
+		   
+	}
+	
+	}
+	
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+package serviceNow;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.annotations.Test;
+
+import io.github.bonigarcia.wdm.WebDriverManager;
+
+public class CreateIncident extends BaseClassService {
+
+	    @Test(priority=1,alwaysRun=true,invocationCount=2,groups="Regression")
+	    public  void createIncident() throws InterruptedException {		
+		driver.findElement(By.xpath("//input[@id='filter']")).sendKeys("incident",Keys.ENTER);
+		driver.findElement(By.xpath("(//div[text()='Create New'])[1]")).click();
+		
+		driver.switchTo().frame("gsft_main");
+		WebElement incidentnum = driver.findElement(By.xpath("//input[@id='incident.number']"));
+		String incident = incidentnum.getAttribute("value");
+		System.out.println("The Incident Number is : " + incident);
+		
+		driver.findElement(By.xpath("//button[@id='lookup.incident.caller_id']")).click();
+		Set<String> window = driver.getWindowHandles();
+		List<String> list = new ArrayList<String>(window);
+		String swin = list.get(1);
+		driver.switchTo().window(swin);
+		
+        driver.findElement(By.xpath("(//a[@class='glide_ref_item_link'])[1]")).click();
+		
+		String fwin = list.get(0);
+		driver.switchTo().window(fwin);
+		Thread.sleep(3000);
+	
+		driver.switchTo().frame("gsft_main");
+		
+		driver.findElement(By.xpath("//input[@id='incident.short_description']")).sendKeys("Testing");
+		driver.findElement(By.xpath("//button[@id='sysverb_insert_bottom']")).click();
+		 
+		 driver.findElement(By.xpath("(//input[@class='form-control'])[1]")).sendKeys(incident,Keys.ENTER);
+		WebElement inci = driver.findElement(By.xpath("//a[@class='linked formlink']"));
+		System.out.println(inci.getText());
+		if(inci.getText().equals(incident)) {
+			System.out.println("New Incident Created");
+		}else {
+			System.out.println("New Incident NOT created");
+		}							
+	}
+
+}
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+package serviceNow;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.Select;
+import org.testng.annotations.Test;
+
+public class Update extends BaseClassService {
+
+	@Test(priority=3,enabled=true,groups="Sanity")
+	public  void update () throws InterruptedException {
+		driver.findElement(By.xpath("//input[@id='filter']")).sendKeys("incident",Keys.ENTER);
+		driver.findElement(By.xpath("(//div[text()='Incidents'])[2]")).click();
+		driver.switchTo().frame("gsft_main");
+		
+		driver.findElement(By.xpath("(//a[@class='linked formlink'])[2]")).click();
+		String incinum = driver.findElement(By.xpath("//div[@class='navbar-title-display-value']")).getText();
+		System.out.println(incinum);
+		
+		WebElement urgency = driver.findElement(By.xpath("//select[@id='incident.urgency']"));
+		Select urgencyoption = new Select(urgency);
+		   urgencyoption.selectByVisibleText("1 - High");
+		   
+		   WebElement state = driver.findElement(By.xpath("//select[@id='incident.state']"));
+		   Select stateoption = new Select(state);
+		   stateoption.selectByVisibleText("In Progress");
+		   
+		   driver.findElement(By.xpath("//button[@id='sysverb_update']")).click();
+		   
+		   WebElement search = driver.findElement(By.xpath("(//input[@class='form-control'])[1]"));
+		   search.sendKeys(incinum,Keys.ENTER);
+		   Thread.sleep(2000);
+		   String priority = driver.findElement(By.xpath("//td[@class='vt'][5]")).getText();
+		   if(priority.equals("1 - Critical")) {
+			   System.out.println("The priority is : " + priority);
+		   String state1 = driver.findElement(By.xpath("//td[@class='vt'][6]")).getText();
+		   if(state1.equals("In Progress")) {
+			   System.out.println("The status is updated");
+		   }else {
+			   System.out.println("The status is not updated");
+		   }
+	}
+	}
+}
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+package serviceNow;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
+import org.testng.annotations.Test;
+
+
+public class AssignIncident extends BaseClassService {
+    @Test(priority=3,groups="Regression")
+	public  void assignIncident() throws InterruptedException {		
+		driver.findElement(By.xpath("//input[@id='filter']")).sendKeys("incident",Keys.ENTER);
+		driver.findElement(By.xpath("(//div[text()='Open'])[1]")).click();
+		driver.switchTo().frame("gsft_main");
+		driver.findElement(By.xpath("(//a[@class='linked formlink'])[7]")).click();
+		String incidentnum = driver.findElement(By.xpath("//div[@class='navbar-title-display-value']")).getText();
+		driver.findElement(By.xpath("//button[@id='lookup.incident.assignment_group']//span[@class='icon icon-search']")).click();
+		
+		Set<String> window = driver.getWindowHandles();
+		List<String> list = new ArrayList<String>(window);
+		String swin = list.get(1);
+		driver.switchTo().window(swin);
+		Thread.sleep(2000);
+		driver.findElement(By.xpath("(//input[@class = 'form-control'])[1]")).sendKeys("software",Keys.ENTER);
+		Thread.sleep(2000);
+		driver.findElement(By.xpath("(//a[@class='glide_ref_item_link'])[1]")).click();
+		
+	    String fwin = list.get(0);
+		driver.switchTo().window(fwin);
+		driver.switchTo().frame("gsft_main");
+		
+		driver.findElement(By.xpath("//div[@class='sn-stream-textarea-container']//textarea[@id='activity-stream-textarea']")).sendKeys("Testing incident");
+		driver.findElement(By.xpath("//button[@id='sysverb_update']")).click();
+		
+		driver.findElement(By.xpath("(//input[@class='form-control'])[1]")).sendKeys(incidentnum,Keys.ENTER);
+		Thread.sleep(2000);
+		String asgroup = driver.findElement(By.xpath("//td[@class='vt'][8]")).getText();
+		   if(asgroup.equals("Software")) {
+			   System.out.println("The Assignment group is updated");
+		   }else {
+			   System.out.println("The Assignment group is not updated");
+		   
+		   }
+		
+	}
+
+}
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+package serviceNow;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
+import org.testng.annotations.Test;
+
+public class DeleteIncident extends BaseClassService{
+        @Test(priority=4,alwaysRun=true,groups="Sanity")
+	    public  void deleteIncident() throws InterruptedException {
+		driver.findElement(By.xpath("//input[@id='filter']")).sendKeys("incident",Keys.ENTER);
+		Thread.sleep(2000);
+		driver.findElement(By.xpath("(//div[text()='Incidents'])[2]")).click();
+		driver.switchTo().frame("gsft_main");
+		driver.findElement(By.xpath("(//a[@class='linked formlink'])[1]")).click();
+		String incidentnum1 = driver.findElement(By.xpath("//div[@class='navbar-title-display-value']")).getText();
+		driver.findElement(By.xpath("//button[@id='sysverb_delete']")).click();
+		
+		driver.findElement(By.xpath("//button[@id='ok_button']")).click();
+		Thread.sleep(2000);
+		driver.findElement(By.xpath("(//input[@class='form-control'])[1]")).sendKeys(incidentnum1,Keys.ENTER);
+		String delrecord = driver.findElement(By.xpath("//td[text()='No records to display']")).getText();
+		if(delrecord.equals("No records to display")) {
+			System.out.println("The Record is deleted");
+		} else {
+				System.out.println("The record is not Deleted");
+			}
+		}
+
+	}
+
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Regression" verbose= "5" >
+<parameter name ="url" value = "https://dev98128.service-now.com/login.do?user_name=adminsysverb_loginuser_password=VixM1iZz0IfW"> </parameter>
+<parameter name = "userName" value = "admin"> </parameter>
+<parameter name = "passWord" value = "Welcome@01" > </parameter>
+  <test thread-count="2" parallel="classes" name="Test">
+    <classes>
+      <class name="serviceNow.CreateIncident"/>
+      <class name="serviceNow.Update"/>
+      <class name="serviceNow.AssignIncident"/>
+      <class name="serviceNow.DeleteIncident"/>
+    </classes>
+  </test> <!-- Test -->
+</suite> <!-- Suite -->
