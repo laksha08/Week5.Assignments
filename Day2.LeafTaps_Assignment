@@ -1,0 +1,170 @@
+package week5.Day2;
+
+import java.io.IOException;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Parameters;
+
+import io.github.bonigarcia.wdm.WebDriverManager;
+
+public class DPBaseClass {
+	
+		   public ChromeDriver driver;
+		   public String fileName;
+		   @Parameters({"url","userName","passWord"})
+		   @BeforeMethod
+			public  void preCondition(String url , String userName , String passWord) {
+				WebDriverManager.chromedriver().setup();
+				driver = new ChromeDriver();
+				driver.get(url);
+				driver.manage().window().maximize();
+				driver.findElement(By.id ("username")).sendKeys(userName);
+			    driver.findElement(By.id ("password")).sendKeys(passWord);
+			    driver.findElement(By.className("decorativeSubmit")).click();
+			    driver.findElement(By.xpath("//a[contains (text(),'CRM/SFA')]")).click();
+
+			}
+		   @AfterMethod
+		   public void postcondition() {
+			   driver.close();
+			   
+		   }
+		   @DataProvider
+		   public String[][] sendData() throws IOException{
+			//LearnExcel learn = new LearnExcel();
+			//String[][] data = learn.readExcel(fileName);
+			return LearnExcel.readExcel(fileName);
+
+		}
+}
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+package week5.Day2;
+
+import org.openqa.selenium.By;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+
+public class DPCreateLead extends DPBaseClass {
+	@BeforeClass
+	public void setData() {
+		fileName = "CreateLeadData";
+	}
+	@Test(dataProvider = "sendData")
+	public  void createLead(String cName,String fName , String lName) {
+	    
+	      driver.findElement(By.partialLinkText("Leads")).click();
+	      driver.findElement(By.partialLinkText("Create Lead")).click();
+	      driver.findElement(By.id("createLeadForm_companyName")).sendKeys(cName);
+	      driver.findElement(By.id("createLeadForm_firstName")).sendKeys(fName);
+	      driver.findElement(By.id("createLeadForm_lastName")).sendKeys(lName);
+	      driver.findElement(By.xpath("//input[@id='createLeadForm_birthDate']")).sendKeys("01/01/1989");
+	      driver.findElement(By.xpath("//input[@id='createLeadForm_primaryPhoneAreaCode']")).sendKeys("11111");
+	      driver.findElement(By.xpath("//input[@value='Create Lead']")).click();
+	      if(driver.getTitle().equals("")) {
+	    	  System.out.println("");
+	      }else {
+	    	  System.out.println("unsuccessful");
+	      }
+	  }   	
+}
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+package week5.Day2;
+
+import org.openqa.selenium.By;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+
+public class DPEditLead extends DPBaseClass{
+	
+	@BeforeClass
+	public void setData() {
+		fileName = "EditLeadData";
+	}
+	@Test(dataProvider = "sendData")
+public  void editLead(String fName,String cName) throws InterruptedException {
+		
+	    driver.findElement(By.xpath("//a[text()='Leads']")).click();
+	    driver.findElement(By.xpath("//a[text()='Find Leads']")).click();
+	    Thread.sleep(2000);
+	    driver.findElement(By.xpath("//input[@id='ext-gen248']")).sendKeys(fName);
+	    Thread.sleep(2000);
+	    driver.findElement(By.xpath("//button[text()='Find Leads']")).click();
+	    Thread.sleep(2000);
+	    driver.findElement(By.xpath("(//div[@class ='x-grid3-cell-inner x-grid3-col-firstName']/a)[1]")).click();
+	    System.out.println(driver.getTitle());
+	    if(driver.getTitle().contains("View Lead")) {
+	    	driver.findElement(By.xpath("//a[text()='Edit']")).click();
+	    	driver.findElement(By.xpath("//input[@id='updateLeadForm_companyName']")).clear();
+	     driver.findElement(By.xpath("//input[@id='updateLeadForm_companyName']")).sendKeys(cName);
+	    	driver.findElement(By.xpath("//input[@value='Update']")).click();
+	    	Thread.sleep(2000);
+	    	String a = driver.findElement(By.xpath("//span[@id='viewLead_companyName_sp']")).getText();
+	    	System.out.println(a);
+	    	Thread.sleep(2000);
+	    	if(a.contains("ABCDE")) {
+	    		System.out.println("Company Name updated");	    	
+	    	}
+	    	else {
+	    		System.out.println("Company name NOT updated");
+	    	}
+	
+	    }
+	}
+	}
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+package week5.Day2;
+
+import java.io.IOException;
+
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+public class LearnExcel {
+
+	public static String[][] readExcel(String fileName) throws IOException {
+		
+		XSSFWorkbook wb = new XSSFWorkbook("./data/"+fileName+".xlsx");
+
+		XSSFSheet sheet = wb.getSheet("Sheet1");
+		int lastRowNum = sheet.getLastRowNum();
+		short lastCellNum = sheet.getRow(0).getLastCellNum();
+		String[][] data = new String[lastRowNum][lastCellNum];
+		for (int i = 1; i <= lastRowNum; i++) {
+			for (int j = 0; j < lastCellNum; j++) {
+				String text = sheet.getRow(i).getCell(j).getStringCellValue();
+				 System.out.println(text);
+				data[i-1][j] = text;
+				System.out.println(text);
+			}
+
+		}
+		wb.close();
+		return data;
+
+
+	}
+
+}
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Suite" verbose= "5" >
+<parameter name ="url" value = "http://leaftaps.com/opentaps/control/main"> </parameter>
+<parameter name = "userName" value = "DemoCSR"> </parameter>
+<parameter name = "passWord" value = "crmsfa" > </parameter>
+  <test thread-count="5" name="Test">
+    <classes>
+      <class name="week5.Day2.DPCreateLead"/>
+      <class name="week5.Day2.DPEditLead"/> 
+    </classes>
+  </test> <!-- Test -->
+</suite> <!-- Suite -->
